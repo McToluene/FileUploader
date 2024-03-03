@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as fs from 'fs';
 import { File } from './entity/file.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,20 +18,36 @@ export class FileUploaderService {
   ) {}
 
   async saveFile(file: Express.Multer.File, folder: Folder): Promise<File> {
-    const buffer = Buffer.from(await fs.promises.readFile(file.path));
-    const newFile = new File();
-    newFile.filename = file.filename;
-    newFile.mimetype = file.mimetype;
-    newFile.content = buffer;
-    newFile.folder = folder;
-    return await this.fileRepository.save(newFile);
+    try {
+      const buffer = Buffer.from(await fs.promises.readFile(file.path));
+      const newFile = new File();
+      newFile.filename = file.filename;
+      newFile.mimetype = file.mimetype;
+      newFile.content = buffer;
+      newFile.folder = folder;
+      return await this.fileRepository.save(newFile);
+    } catch (error) {
+      throw new BadRequestException('Unable to save file');
+    }
   }
 
   async getFileByName(filename: string): Promise<File> {
-    return this.fileRepository.findOne({ where: { filename } });
+    try {
+      const file = await this.fileRepository.findOne({ where: { filename } });
+      if (!file) throw new NotFoundException(`${filename} not found`);
+      return file;
+    } catch (error) {
+      throw new BadRequestException('Unable to fetch file');
+    }
   }
 
   async getAllFiles(): Promise<FileResponseDto[]> {
-    return this.fileRepository.find({ select: ['id', 'filename', 'mimetype'] });
+    try {
+      return await this.fileRepository.find({
+        select: ['id', 'filename', 'mimetype'],
+      });
+    } catch (error) {
+      throw new BadRequestException('Unable to fetch files');
+    }
   }
 }
