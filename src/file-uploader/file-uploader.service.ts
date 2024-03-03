@@ -17,15 +17,24 @@ export class FileUploaderService {
     private readonly fileRepository: Repository<File>,
   ) {}
 
-  async saveFile(file: Express.Multer.File, folder: Folder): Promise<File> {
+  async saveFile(
+    file: Express.Multer.File,
+    folder: Folder,
+  ): Promise<FileResponseDto> {
     try {
       const buffer = Buffer.from(await fs.promises.readFile(file.path));
-      const newFile = new File();
+      let newFile = new File();
       newFile.filename = file.filename;
       newFile.mimetype = file.mimetype;
       newFile.content = buffer;
       newFile.folder = folder;
-      return await this.fileRepository.save(newFile);
+      newFile = await this.fileRepository.save(newFile);
+
+      return {
+        filename: newFile.filename,
+        id: newFile.id,
+        mimetype: newFile.mimetype,
+      };
     } catch (error) {
       throw new BadRequestException('Unable to save file');
     }

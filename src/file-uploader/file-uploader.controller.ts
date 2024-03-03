@@ -15,7 +15,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { FolderService } from '../folder/folder.service';
-import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FileUploadDto } from './dtos/request/file-upload.dto';
 import { FileResponseDto } from './dtos/response/file.response.dto';
 
@@ -44,6 +51,11 @@ export class FileUploaderController {
     }),
   )
   @ApiBody({ description: 'Upload file with folder name', type: FileUploadDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the created file details',
+    type: FileResponseDto,
+  })
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: { folderName: string },
@@ -53,6 +65,17 @@ export class FileUploaderController {
   }
 
   @Get()
+  @Get()
+  @ApiOperation({
+    summary: 'Get all files',
+    description: 'Returns an array of all files.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Return an array of files.',
+    type: FileResponseDto,
+    isArray: true,
+  })
   async getAllFiles(): Promise<FileResponseDto[]> {
     return this.fileService.getAllFiles();
   }
