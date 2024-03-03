@@ -36,6 +36,10 @@ export class FileUploaderController {
 
   @Post('upload')
   @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Upload file',
+    description: 'Upload file of different format.',
+  })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -65,7 +69,6 @@ export class FileUploaderController {
   }
 
   @Get()
-  @Get()
   @ApiOperation({
     summary: 'Get all files',
     description: 'Returns an array of all files.',
@@ -81,6 +84,10 @@ export class FileUploaderController {
   }
 
   @Get('download/:filename')
+  @ApiOperation({
+    summary: 'Download by name',
+    description: 'Returns a file to download',
+  })
   @ApiParam({
     name: 'filename',
     type: 'string',
@@ -99,5 +106,22 @@ export class FileUploaderController {
       `attachment; filename="${file.filename}"`,
     );
     res.send(file.content);
+  }
+
+  @Get('folder/:folderName')
+  @ApiOperation({
+    summary: 'Get all files in a folder',
+    description: 'Returns an array of all files.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Return an array of files.',
+    type: FileResponseDto,
+    isArray: true,
+  })
+  async getAllFilesByFolderName(
+    @Param('folderName') folderName: string,
+  ): Promise<FileResponseDto[]> {
+    return this.fileService.getAllFilesByFolderName(folderName);
   }
 }

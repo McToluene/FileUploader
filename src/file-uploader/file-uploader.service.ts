@@ -50,6 +50,21 @@ export class FileUploaderService {
     }
   }
 
+  async getAllFilesByFolderName(
+    folderName: string,
+  ): Promise<FileResponseDto[]> {
+    try {
+      return this.fileRepository
+        .createQueryBuilder('file')
+        .innerJoinAndSelect('file.folder', 'folder')
+        .where('folder.name = :folderName', { folderName })
+        .select(['file.id', 'file.filename', 'file.mimetype'])
+        .getMany();
+    } catch (error) {
+      throw new Error(`Unable to fetch files by folder name: ${error.message}`);
+    }
+  }
+
   async getAllFiles(): Promise<FileResponseDto[]> {
     try {
       return await this.fileRepository.find({
